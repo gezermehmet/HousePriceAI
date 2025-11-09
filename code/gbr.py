@@ -9,6 +9,8 @@ from lightgbm import LGBMRegressor
 from sklearn.model_selection import GridSearchCV
 
 
+# --- ADIM 1: Veri Temizleme Fonksiyonu ---
+
 def preprocess_data(data):
 
     df = data.copy()
@@ -34,7 +36,7 @@ def preprocess_data(data):
     return df
 
 
-df_raw = pd.read_csv('train.csv')
+df_raw = pd.read_csv('data/train.csv')
 df_clean = preprocess_data(df_raw)
 
 
@@ -296,7 +298,6 @@ print(f"R-squared (R2) Skoru: {r2:.4f} (Yani model, fiyatlardaki değişkenliği
 # Mean Absolute Error (MAE): Ortalama kaç dolar saptığımızı gösterir.
 mae = mean_absolute_error(y_test, y_pred)
 print(f"Ortalama Mutlak Hata (MAE): {mae:,.2f} $ (Modelimiz, bir evin fiyatını ortalama bu kadar dolar farkla tahmin ediyor)")
-
 
 
 """
