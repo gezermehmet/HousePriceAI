@@ -1,0 +1,2 @@
+GradientBoosting_Optimized_v1,15535.729830141212,0.913497603733174,"{'learning_rate': 0.1, 'max_depth': 3, 'n_estimators': 500}",15745.275437180235,2025-11-10 01:52
+GBR_FINAL_500,15535.729830141212,0.913497603733174,"{'learning_rate': 0.1, 'max_depth': 3, 'n_estimators': 500}",N/A (Final Script),2025-11-10 01:55
