@@ -1,46 +1,85 @@
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import GradientBoostingRegressor
-# from lightgbm import LGBMRegressor # LGBM optimize edeceksen bunu aç, GradientBoosting'i kapat
+from sklearn.model_selection import train_test_split, GridSearchCV
 import seaborn as sns
 import matplotlib.pyplot as plt
-from sklearn.metrics import mean_absolute_error, r2_score
-from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import mean_absolute_error, r2_score, make_scorer
 import os
-import json # Ayarları kaydetmek için JSON kütüphanesini import et
+import json # Ayarları kaydetmek için
 import time
+
+# --- KÜTÜPHANE İMPORTLARI ---
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from lightgbm import LGBMRegressor
 from preprocess import preprocess_data
 
-# --- KONTROL PANELİ ---
-# Hangi modeli optimize edeceksin?
-BASE_MODEL = GradientBoostingRegressor(random_state=42)
-MODEL_ADI = "GradientBoosting_Optimized_v1"
-PARAMS_DOSYASI = 'results/best_params_gbr.json'
-PARAM_GRID = {
-    'n_estimators': [50,100, 300, 500],
-    'max_depth': [1, 3, 5, 10],
-    'learning_rate': [0.1, 0.05, 0.15, 0.2]
-}
-# --------------------
+#--------------------------------------------------------------------------------
+# --- KONTROL PANELİ 🎛️ ---
+# Hangi modeli optimize etmek istiyorsun?
+# Seçenekler: 'GradientBoosting', 'LGBM', 'RandomForest'
+MODEL_TO_OPTIMIZE = 'GradientBoosting'
+#--------------------------------------------------------------------------------
 
-LOG_DOSYASI = 'results/experiment_log.csv'
+# --- YOL TANIMLARI ---
 DATA_PATH = 'data/train.csv'
 RESULTS_PATH = 'results/'
 IMAGES_PATH = 'results/images/'
+LOG_DOSYASI = os.path.join(RESULTS_PATH, 'experiment_log.csv')
+
+# --- Model Ayar Menüleri (Parametre Izgaraları) ---
+model_configs = {
+    'GradientBoosting': {
+        'model': GradientBoostingRegressor(random_state=42),
+        'params': {
+            'n_estimators': [100, 300, 500],
+            'max_depth': [3, 5],
+            'learning_rate': [0.1, 0.05]
+        },
+        'json_path': os.path.join(RESULTS_PATH, 'best_params_gbr.json')
+    },
+    'LGBM': {
+        'model': LGBMRegressor(random_state=42, n_jobs=-1, verbose=-1),
+        'params': {
+            'n_estimators': [100, 300, 500],
+            'learning_rate': [0.1, 0.05],
+            'num_leaves': [10, 20, 31]
+        },
+        'json_path': os.path.join(RESULTS_PATH, 'best_params_lgbm.json')
+    },
+    'RandomForest': {
+        'model': RandomForestRegressor(random_state=42, n_jobs=-1),
+        'params': {
+            'n_estimators': [100, 200], # RF yavaş olduğu için daha az ayar
+            'max_depth': [10, 20, None],
+            'min_samples_leaf': [1, 2, 4]
+        },
+        'json_path': os.path.join(RESULTS_PATH, 'best_params_rf.json')
+    }
+}
+
+# --- Seçilen modelin ayarlarını al ---
+if MODEL_TO_OPTIMIZE not in model_configs:
+    raise ValueError(f"MODEL_TO_OPTIMIZE '{MODEL_TO_OPTIMIZE}' olarak ayarlandı, ancak 'model_configs' içinde tanınmıyor.")
+
+config = model_configs[MODEL_TO_OPTIMIZE]
+BASE_MODEL = config['model']
+PARAM_GRID = config['params']
+PARAMS_DOSYASI = config['json_path']
+MODEL_ADI = f"{MODEL_TO_OPTIMIZE}_Optimized"
 
 # --- Klasörlerin var olduğundan emin ol ---
-if not os.path.exists(IMAGES_PATH):
-    os.makedirs(IMAGES_PATH)
-if not os.path.exists(RESULTS_PATH):
-    os.makedirs(RESULTS_PATH)
+if not os.path.exists(IMAGES_PATH): os.makedirs(IMAGES_PATH)
+if not os.path.exists(RESULTS_PATH): os.makedirs(RESULTS_PATH)
     
 # --- ANA KOD AKIŞI ---
-print(f"Deney Başlatıldı: {MODEL_ADI}")
+print(f"Deney Başlatıldı: {MODEL_ADI} Optimizasyonu")
 start_time = time.time()
-X, y = preprocess_data(DATA_PATH)
+
+# 1. Veriyi Hazırla
+X, y, feature_names = preprocess_data(DATA_PATH)
 
 if X is not None:
+    # 2. Veriyi Böl
     X_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     #--------------------------------------------------------------------------------
@@ -48,15 +87,17 @@ if X is not None:
     #--------------------------------------------------------------------------------
     print(f"\nModel ({MODEL_ADI}) için en iyi ayarlar aranıyor...")
     print(f"Denenecek Parametre Izgarası: {PARAM_GRID}")
-    print(f"Aday kombinasyon sayısı: {np.prod([len(v) for v in PARAM_GRID.values()])}")
+    
+    # MAE'yi 'scoring' olarak kullanmak için (scikit-learn negatifi maksimize eder)
+    mae_scorer = make_scorer(mean_absolute_error, greater_is_better=False)
           
     grid_search = GridSearchCV(
         estimator=BASE_MODEL,
         param_grid=PARAM_GRID,
         cv=5, 
-        scoring='neg_mean_absolute_error', # MAE'ye göre optimize et
-        n_jobs=-1, # Tüm işlemcileri kullan
-        verbose=1  # İlerlemeyi göster
+        scoring=mae_scorer, 
+        n_jobs=-1,
+        verbose=1
     )
     grid_search.fit(X_train, y_train)
 
@@ -77,9 +118,6 @@ if X is not None:
 
     # En iyi modeli al
     best_model = grid_search.best_estimator_
-
-    # Tahminleri en iyi modelle yap
-    print("✓ Tahminler en iyi modelle yapıldı (Final Sınavı).")
     y_pred = best_model.predict(x_test)
     
     #--------------------------------------------------------------------------------
@@ -88,8 +126,8 @@ if X is not None:
 
     print(f"\n--- Sayısal Değerlendirme (Final Test Seti - {MODEL_ADI}) ---")
     r2 = r2_score(y_test, y_pred)
-    print(f"R-squared (R2) Skoru: {r2:.4f}")
     mae = mean_absolute_error(y_test, y_pred)
+    print(f"R-squared (R2) Skoru: {r2:.4f}")
     print(f"Ortalama Mutlak Hata (MAE): {mae:,.2f} $")
 
     # --- Sonuçları CSV Log Dosyasına Kaydetme ---
@@ -100,64 +138,54 @@ if X is not None:
         'r2_test_seti': r2,
         'en_iyi_ayarlar': str(grid_search.best_params_),
         'cv_mae_skoru': best_mae_cv,
+        'test_suresi': f"{time.time() - start_time:.2f} saniye",
         'tarih': pd.to_datetime('today').strftime('%Y-%m-%d %H:%M')
     }
     log_df = pd.DataFrame([log_entry])
     try:
-        if not os.path.exists(LOG_DOSYASI):
-            log_df.to_csv(LOG_DOSYASI, index=False)
-        else:
-            log_df.to_csv(LOG_DOSYASI, mode='a', header=False, index=False)
+        if not os.path.exists(LOG_DOSYASI): log_df.to_csv(LOG_DOSYASI, index=False)
+        else: log_df.to_csv(LOG_DOSYASI, mode='a', header=False, index=False)
         print("✓ Sonuçlar kaydedildi.")
-    except Exception as e:
-        print(f"HATA: Log dosyası kaydedilemedi! {e}")
+    except Exception as e: print(f"HATA: Log dosyası kaydedilemedi! {e}")
 
-    # --- Grafikleri Kaydetme ---
+    # --- Grafikleri Kaydetme (Scatter, Residuals, Feature Importance) ---
     print("\n--- Görsel Değerlendirmeler Hazırlanıyor ---")
     
-    # Grafik 1: Gerçek vs. Tahmin (Scatter Plot)
+    # Grafik 1: Gerçek vs. Tahmin
     plt.figure(figsize=(10, 6))
     sns.scatterplot(x=y_test, y=y_pred)
-    plt.xlabel('Gerçek Fiyatlar (y_test)')
-    plt.ylabel('Tahmini Fiyatlar (y_pred)')
-    plt.title(f'Gerçek vs. Tahmini Fiyatlar ({MODEL_ADI})')
-    min_val = min(min(y_test), min(y_pred))
-    max_val = max(max(y_test), max(y_pred))
+    plt.xlabel('Gerçek Fiyatlar'); plt.ylabel('Tahmini Fiyatlar')
+    plt.title(f'Gerçek vs. Tahmin ({MODEL_ADI})')
+    min_val = min(min(y_test), min(y_pred)); max_val = max(max(y_test), max(y_pred))
     plt.plot([min_val, max_val], [min_val, max_val], color='red', linestyle='--')
     graph_filename = os.path.join(IMAGES_PATH, f'py_scatter_{MODEL_ADI}.png')
     plt.savefig(graph_filename, dpi=300)
     print(f"Grafik kaydedildi: {graph_filename}")
-    # plt.show() # Terminalde çalışırken bu satır kapatılabilir
-
-    # Grafik 2: Hata Dağılımı (Residual Plot)
+    
+    # Grafik 2: Hata Grafiği
     residuals = y_test - y_pred
     plt.figure(figsize=(10, 6))
     sns.scatterplot(x=y_test, y=residuals)
     plt.axhline(y=0, color='red', linestyle='--')
-    plt.xlabel('Gerçek Fiyatlar (y_test)')
-    plt.ylabel('Hata Payı (Gerçek - Tahmin)')
+    plt.xlabel('Gerçek Fiyatlar'); plt.ylabel('Hata Payı (Gerçek - Tahmin)')
     plt.title(f'Hata Dağılım Grafiği ({MODEL_ADI})')
     graph_filename = os.path.join(IMAGES_PATH, f'py_residuals_{MODEL_ADI}.png')
     plt.savefig(graph_filename, dpi=300)
     print(f"Hata grafiği kaydedildi: {graph_filename}")
-    # plt.show()
-    
-    # Grafik 3: Özellik Önem Düzeyi (Feature Importance Plot)
+
+    # Grafik 3: Özellik Önem Düzeyi
     try:
         importances = best_model.feature_importances_
-        feat_imp = pd.Series(importances, index=X.columns).sort_values(ascending=False)
-        
+        feat_imp = pd.Series(importances, index=feature_names).sort_values(ascending=False)
         plt.figure(figsize=(10, 8))
         sns.barplot(x=feat_imp.head(20), y=feat_imp.head(20).index)
         plt.title(f'En Önemli 20 Özellik ({MODEL_ADI})')
-        plt.xlabel('Önem Düzeyi')
-        plt.ylabel('Özellikler')
+        plt.xlabel('Önem Düzeyi'); plt.ylabel('Özellikler')
         plt.tight_layout()
         graph_filename = os.path.join(IMAGES_PATH, f'py_feature_imp_{MODEL_ADI}.png')
         plt.savefig(graph_filename, dpi=300)
         print(f"Özellik önemi grafiği kaydedildi: {graph_filename}")
-    except Exception as e:
-        print(f"HATA: Özellik önemi grafiği oluşturulamadı! {e}")
+    except Exception as e: print(f"HATA: Özellik önemi grafiği oluşturulamadı! {e}")
         
     end_time = time.time()
     total_time = end_time - start_time

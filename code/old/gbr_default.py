@@ -6,7 +6,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error, r2_score
 import os
-from preprocess import preprocess_data
+from code.preprocess import preprocess_data
 
 # --- ANA KOD AKIŞI ---
 
