@@ -17,7 +17,7 @@ from preprocess import preprocess_data
 # --- KONTROL PANELİ 🎛️ ---
 # Hangi modeli optimize etmek istiyorsun?
 # Seçenekler: 'GradientBoosting', 'LGBM', 'RandomForest'
-MODEL_TO_OPTIMIZE = 'GradientBoosting'
+MODEL_TO_OPTIMIZE = 'RandomForest'  # BURADA MODELİ SEÇİN
 #--------------------------------------------------------------------------------
 
 # --- YOL TANIMLARI ---

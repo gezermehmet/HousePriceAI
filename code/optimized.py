@@ -15,9 +15,20 @@ from preprocess import preprocess_data
 
 #--------------------------------------------------------------------------------
 # --- KONTROL PANELİ 🎛️ ---
-# Hangi 'kayıtlı' ayarları kullanarak HIZLI bir eğitim yapmak istiyorsun?
-# 'GradientBoosting' mi, 'LGBM' mi, 'RandomForest' mi?
-MODEL_TYPE_TO_LOAD = 'GradientBoosting'
+print(" Modeller ")
+print("1: Gradient Boosting Regressor")
+print("2: LGBM Regressor")
+print("3: Random Forest Regressor")
+secim = input("Lütfen Eğitmek İstediğiniz Modeli seçiniz (1-3): ")
+
+if secim == '1':
+    MODEL_TYPE_TO_LOAD = 'GradientBoosting'
+elif secim == '2':
+    MODEL_TYPE_TO_LOAD = 'LGBM'
+elif secim == '3':
+    MODEL_TYPE_TO_LOAD = 'RandomForest'
+else:
+    raise ValueError("Geçersiz seçim! Lütfen 1, 2, veya 3 giriniz.")
 #--------------------------------------------------------------------------------
 
 # --- YOL TANIMLARI ---

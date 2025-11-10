@@ -15,3 +15,11 @@ GBR_Default,16500.872817730957,0.908345864027245,N/A (Default),N/A (Default),0.6
 LR_Default,0.23141268263405215,0.8851582784350001,N/A (Default),N/A (Default),0.11,2025-11-10 13:31
 LR_Default,18377.705737521163,0.8851582784350001,N/A (Default),N/A (Default),2025-11-10 13:56
 GradientBoosting_Final,15558.134488804779,0.9135418482319869,"{'learning_rate': 0.1, 'max_depth': 3, 'n_estimators': 500}",N/A (Final Script),2025-11-10 13:57
+GradientBoosting_Optimized,15558.134488804779,0.9135418482319869,"{'learning_rate': 0.1, 'max_depth': 3, 'n_estimators': 500}",15749.995937392032,24.30 saniye,2025-11-10 16:05
+LGBM_Optimized,16376.867694541219,0.8992186000167215,"{'learning_rate': 0.1, 'n_estimators': 100, 'num_leaves': 10}",16360.676951571275,22.58 saniye,2025-11-10 16:07
+RandomForest_Optimized,17644.336534233935,0.8923098549924168,"{'max_depth': 20, 'min_samples_leaf': 2, 'n_estimators': 100}",18215.92792866839,26.50 saniye,2025-11-10 16:08
+GradientBoosting_Final,15558.134488804779,0.9135418482319869,"{'learning_rate': 0.1, 'max_depth': 3, 'n_estimators': 500}",N/A (Final Script),2025-11-10 16:09
+GradientBoosting_Final,15558.134488804779,0.9135418482319869,"{'learning_rate': 0.1, 'max_depth': 3, 'n_estimators': 500}",N/A (Final Script),2025-11-10 16:10
+GradientBoosting_Final,15558.134488804779,0.9135418482319869,"{'learning_rate': 0.1, 'max_depth': 3, 'n_estimators': 500}",N/A (Final Script),2025-11-10 16:11
+LGBM_Final,16376.867694541219,0.8992186000167215,"{'learning_rate': 0.1, 'n_estimators': 100, 'num_leaves': 10}",N/A (Final Script),2025-11-10 16:11
+RandomForest_Final,17644.336534233935,0.8923098549924168,"{'max_depth': 20, 'min_samples_leaf': 2, 'n_estimators': 100}",N/A (Final Script),2025-11-10 16:12
