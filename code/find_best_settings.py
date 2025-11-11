@@ -22,7 +22,7 @@ MODEL_TO_OPTIMIZE = 'RandomForest'  # BURADA MODELİ SEÇİN
 
 # --- YOL TANIMLARI ---
 DATA_PATH = 'data/train.csv'
-RESULTS_PATH = 'results/'
+RESULTS_PATH = 'results/best_params/'
 IMAGES_PATH = 'results/images/'
 LOG_DOSYASI = os.path.join(RESULTS_PATH, 'experiment_log.csv')
 
@@ -124,6 +124,9 @@ if X is not None:
     # --- ADIM 4: DEĞERLENDİRME VE RAPORLAMA ---
     #--------------------------------------------------------------------------------
 
+    end_time = time.time()
+    total_time = end_time - start_time
+
     print(f"\n--- Sayısal Değerlendirme (Final Test Seti - {MODEL_ADI}) ---")
     r2 = r2_score(y_test, y_pred)
     mae = mean_absolute_error(y_test, y_pred)
@@ -187,8 +190,7 @@ if X is not None:
         print(f"Özellik önemi grafiği kaydedildi: {graph_filename}")
     except Exception as e: print(f"HATA: Özellik önemi grafiği oluşturulamadı! {e}")
         
-    end_time = time.time()
-    total_time = end_time - start_time
+
     print(f"\nDeney ({MODEL_ADI}) {total_time:.2f} saniyede tamamlandı.")
 else:
     print("Veri yüklenemediği için analiz durduruldu.")

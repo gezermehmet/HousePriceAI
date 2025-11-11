@@ -86,6 +86,9 @@ if X is not None:
     # --- ADIM 4: DEĞERLENDİRME VE RAPORLAMA ---
     #--------------------------------------------------------------------------------
 
+    end_time = time.time()
+    total_time = end_time - start_time
+
     print(f"\n--- Sayısal Değerlendirme ({MODEL_ADI}) ---")
     r2 = r2_score(y_test, y_pred)
     mae = mean_absolute_error(y_test, y_pred)
@@ -96,8 +99,12 @@ if X is not None:
     # ... (Loglama kodu aynı, buraya kopyalamaya gerek yok) ...
     print(f"\nSonuçlar '{LOG_DOSYASI}' dosyasına kaydediliyor...")
     log_entry = {
-        'model_adi': MODEL_ADI, 'mae_test_seti': mae, 'r2_test_seti': r2,
-        'en_iyi_ayarlar': 'N/A (Default)', 'cv_mae_skoru': 'N/A (Default)',
+        'model_adi': MODEL_ADI, 
+        'mae_test_seti': mae, 
+        'r2_test_seti': r2,
+        'en_iyi_ayarlar': 'N/A (Default)', 
+        'cv_mae_skoru': 'N/A (Default)',
+        'toplam_sure_saniye': round(total_time, 2),
         'tarih': pd.to_datetime('today').strftime('%Y-%m-%d %H:%M')
     }
     log_df = pd.DataFrame([log_entry])
@@ -153,8 +160,7 @@ if X is not None:
         # Hata olsa bile grafiği kapat ki sonraki kod çalışsın
         plt.close()
         
-    end_time = time.time()
-    total_time = end_time - start_time
+
     print(f"\nDeney ({MODEL_ADI}) {total_time:.2f} saniyede tamamlandı.")
 else:
     print("Veri yüklenemediği için analiz durduruldu.")

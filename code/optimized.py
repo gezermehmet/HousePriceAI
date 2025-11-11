@@ -101,6 +101,9 @@ if X is not None:
     #--------------------------------------------------------------------------------
     # --- ADIM 4: DEĞERLENDİRME VE RAPORLAMA ---
     #--------------------------------------------------------------------------------
+
+    end_time = time.time()
+    total_time = end_time - start_time
     
     print(f"\n--- Sayısal Değerlendirme (Final Model - {MODEL_ADI}) ---")
     r2 = r2_score(y_test, y_pred)
@@ -116,6 +119,7 @@ if X is not None:
         'r2_test_seti': r2,
         'en_iyi_ayarlar': str(best_params),
         'cv_mae_skoru': 'N/A (Final Script)',
+        'toplam_sure_saniye': round(total_time, 2),
         'tarih': pd.to_datetime('today').strftime('%Y-%m-%d %H:%M')
     }
     log_df = pd.DataFrame([log_entry])
@@ -164,8 +168,7 @@ if X is not None:
         print(f"Özellik önemi grafiği kaydedildi: {graph_filename}")
     except Exception as e: print(f"HATA: Özellik önemi grafiği oluşturulamadı! {e}")
         
-    end_time = time.time()
-    total_time = end_time - start_time
+    
     print(f"\nFinal Deneyi ({MODEL_ADI}) {total_time:.2f} saniyede tamamlandı.")
 else:
     print("Veri yüklenemediği için analiz durduruldu.")
